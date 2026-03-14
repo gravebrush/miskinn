@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Birtanem'e</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  font-family: sans-serif;
+  position: relative;
+  background: radial-gradient(circle at 50% 50%, #0a4b3a 0%, #013220 100%);
+}
+
+/* Cam gibi şeffaf büyük yazı */
+#backgroundText {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  animation: glow 8s ease-in-out infinite;
+  transition: opacity 2s ease-in-out; /* opacity geçişi */
+}
+#backgroundText .letter {
+  font-weight: 900;
+  font-family: "Segoe UI", Roboto, Arial, system-ui, sans-serif;
+  font-size: clamp(180px, 40vmin, 900px);
+  color: rgba(255,255,255,0.06);
+  -webkit-text-stroke: 2px rgba(0,0,0,0.22);
+  line-height:1;
+  letter-spacing: -0.02em;
+}
+
+/* Hafif animasyonlu ışık dalgaları */
+#lightEffect {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+  animation: lightWave 12s ease-in-out infinite;
+}
+
+/* Glow ve ışık animasyonları */
+@keyframes glow {
+  0% { filter: brightness(0.9); }
+  50% { filter: brightness(1.1); }
+  100% { filter: brightness(0.9); }
+}
+@keyframes lightWave {
+  0% { transform: scale(1) translate(0,0); opacity: 0.5; }
+  50% { transform: scale(1.2) translate(20px,-10px); opacity: 0.7; }
+  100% { transform: scale(1) translate(0,0); opacity: 0.5; }
+}
+
+/* Kalpler */
+.heart {
+  position: absolute;
+  top: 0;
+  color: #8B4513;
+  pointer-events: none;
+}
+
+/* Mini ışık partikülleri */
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Sürpriz mesaj */
+#surpriseMessage {
+  position: fixed;
+  top: 40%;
+  width: 100%;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+  color: rgba(255,255,255,0.85);
+  font-size: clamp(24px, 3vw, 80px);
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+#surpriseMessage .line {
+  display: block;
+  margin: 12px 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Hafif ışık dalgası -->
+<div id="lightEffect"></div>
+
+<!-- Cam yazı -->
+<div id="backgroundText">
+  <div class="letter">Ecrinim</div>
+</div>
+
+<!-- Sürpriz mesaj -->
+<div id="surpriseMessage">
+  <span class="line">🤍3. ayımız kutlu olsun 🤍</span>
+  <span class="line">🤍Seni her şeyden çok seviyorum🤍</span>
+</div>
+
+<script>
+const w = window.innerWidth;
+const h = window.innerHeight;
+const particles = [];
+const lights = [];
+
+// Kalplerin boyut ve sallanması
+function spawnHeart() {
+  const size = 16 + Math.random()*16;
+  const duration = 2 + Math.random()*3;
+  const heart = {
+    x: Math.random() * w,
+    y: -size,
+    size: size,
+    vx: (Math.random()-0.5)*1, // sağ-sol hafif sallanma
+    vy: h/duration,
+    element: document.createElement('div')
+  };
+  heart.element.className = 'heart';
+  heart.element.style.fontSize = heart.size + 'px';
+  heart.element.style.left = heart.x + 'px';
+  heart.element.innerText = '🤎';
+  document.body.appendChild(heart.element);
+  particles.push(heart);
+
+  // Kalp etrafında mini ışık partikülleri
+  for(let i=0; i<3; i++){
+    const light = {
+      x: heart.x + Math.random()*heart.size - heart.size/2,
+      y: heart.y + Math.random()*heart.size - heart.size/2,
+      vx: (Math.random()-0.5)*0.5,
+      vy: (Math.random()-0.5)*0.5,
+      life: 50 + Math.random()*50,
+      element: document.createElement('div')
+    };
+    light.element.className = 'particle';
+    light.element.style.left = light.x+'px';
+    light.element.style.top = light.y+'px';
+    document.body.appendChild(light.element);
+    lights.push(light);
+  }
+
+  setTimeout(() => {
+    document.body.removeChild(heart.element);
+    const index = particles.indexOf(heart);
+    if(index > -1) particles.splice(index,1);
+  }, duration*1000);
+}
+
+setInterval(spawnHeart, 300);
+
+// Animasyon döngüsü
+function loop() {
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy * 0.016;
+    p.element.style.transform = `translate(${p.x}px, ${p.y}px)`;
+  });
+
+  for(let i=lights.length-1; i>=0; i--){
+    const l = lights[i];
+    l.x += l.vx;
+    l.y += l.vy;
+    l.life--;
+    l.element.style.transform = `translate(${l.x}px, ${l.y}px)`;
+    if(l.life <= 0){
+      document.body.removeChild(l.element);
+      lights.splice(i,1);
+    }
+  }
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+
+// Sürpriz mesaj animasyonu ve arka plan yazısını kaybettirme
+setTimeout(() => {
+  document.getElementById('surpriseMessage').style.opacity = 1;
+  document.getElementById('backgroundText').style.opacity = 0;
+}, 5000); // 5 saniye sonra
+</script>
+</body>
+</html>
